@@ -54,10 +54,16 @@ venv.bak/
 *~
 .DS_Store
 
-# Temporary & diagnostic scripts
+# Temporary, diagnostic & local bench test scripts (root level)
+/*.py
 check_*.py
 fix_*.py
 *_fix.py
+test_*.py
+run_*.py
+simple_*.py
+comprehensive_*.py
+configure_*.py
 verify_workspace.py
 habitual_late_comers_fixed.py
 INSTALLATION_COMPLETE.md
