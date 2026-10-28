@@ -23,6 +23,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+attendance_policy.tar.gz
 
 # Unit test / coverage reports
 htmlcov/
@@ -52,3 +53,11 @@ venv.bak/
 *.swo
 *~
 .DS_Store
+
+# Temporary & diagnostic scripts
+check_*.py
+fix_*.py
+*_fix.py
+verify_workspace.py
+habitual_late_comers_fixed.py
+INSTALLATION_COMPLETE.md
