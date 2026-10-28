@@ -1,0 +1,161 @@
+{
+ "charts": [
+  {
+   "chart_name": "Late Arrivals by Grade",
+   "label": "Late Arrivals by Grade"
+  },
+  {
+   "chart_name": "Late Arrivals by Employee",
+   "label": "Top 10 Late Employees"
+  },
+  {
+   "chart_name": "Late Arrivals Daily Trend",
+   "label": "Late Arrivals Trend"
+  }
+ ],
+ "content": "[{\"type\":\"header\",\"data\":{\"text\":\"Attendance Policy\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance Policy Settings\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Late Arrival Log\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Late Deduction Entry\",\"col\":3}},{\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Late Arrival Charts\",\"col\":8}}]",
+ "creation": "2026-10-28 12:04:00",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "clock",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Attendance Policy",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Attendance Policy Settings",
+   "link_count": 0,
+   "link_to": "Attendance Policy Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Logs and Deductions",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Late Arrival Log",
+   "link_count": 0,
+   "link_to": "Late Arrival Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Late Deduction Entry",
+   "link_count": 0,
+   "link_to": "Late Deduction Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Daily Attendance Summary",
+   "link_count": 0,
+   "link_to": "Daily Attendance Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Habitual Late Comers",
+   "link_count": 0,
+   "link_to": "Habitual Late Comers",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Late Arrival Charts",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Late Arrivals Dashboard",
+   "link_count": 0,
+   "link_to": "Late Arrivals",
+   "link_type": "Dashboard",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-10-28 12:04:00",
+ "modified_by": "Administrator",
+ "module": "Attendance Policy",
+ "name": "Attendance Policy",
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 20,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "",
+   "label": "Attendance Policy Settings",
+   "link_to": "Attendance Policy Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "label": "Late Arrival Log",
+   "link_to": "Late Arrival Log",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "label": "Late Deduction Entry",
+   "link_to": "Late Deduction Entry",
+   "type": "DocType"
+  }
+ ],
+ "title": "Attendance Policy"
+}
