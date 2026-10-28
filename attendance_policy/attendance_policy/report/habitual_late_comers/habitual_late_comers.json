@@ -1,0 +1,20 @@
+{
+ "doctype": "Report",
+ "name": "Habitual Late Comers",
+ "ref_doctype": "Late Arrival Log",
+ "report_name": "Habitual Late Comers",
+ "report_type": "Script Report",
+ "is_standard": "Yes",
+ "module": "Attendance Policy",
+ "roles": [
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "System Manager"
+  }
+ ]
+}
