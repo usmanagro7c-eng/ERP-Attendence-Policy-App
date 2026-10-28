@@ -1,0 +1,20 @@
+{
+ "doctype": "Report",
+ "name": "Daily Attendance Summary",
+ "ref_doctype": "Employee Checkin",
+ "report_name": "Daily Attendance Summary",
+ "report_type": "Script Report",
+ "is_standard": "Yes",
+ "module": "Attendance Policy",
+ "roles": [
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "System Manager"
+  }
+ ]
+}
