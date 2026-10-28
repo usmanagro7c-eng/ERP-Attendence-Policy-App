@@ -1,0 +1,107 @@
+{
+ "doctype": "DocType",
+ "name": "Late Deduction Entry",
+ "module": "Attendance Policy",
+ "issingle": 0,
+ "custom": 0,
+ "engine": "InnoDB",
+ "editable_grid": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "fetch_from": "employee.employee_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_end",
+   "fieldtype": "Date",
+   "label": "Period End",
+   "reqd": 1
+  },
+  {
+   "fieldname": "late_days",
+   "fieldtype": "Float",
+   "label": "Total Late Days",
+   "precision": "4"
+  },
+  {
+   "fieldname": "from_leave",
+   "fieldtype": "Float",
+   "label": "Deducted from Leave",
+   "precision": "4"
+  },
+  {
+   "fieldname": "from_salary",
+   "fieldtype": "Float",
+   "label": "Deducted from Salary (days)",
+   "precision": "4"
+  },
+  {
+   "fieldname": "salary_amount",
+   "fieldtype": "Currency",
+   "label": "Salary Amount"
+  },
+  {
+   "fieldname": "additional_salary",
+   "fieldtype": "Link",
+   "label": "Additional Salary",
+   "options": "Additional Salary"
+  },
+  {
+   "fieldname": "leave_ledger_entry",
+   "fieldtype": "Link",
+   "label": "Leave Ledger Entry",
+   "options": "Leave Ledger Entry"
+  },
+  {
+   "fieldname": "journal_entry",
+   "fieldtype": "Link",
+   "label": "Journal Entry",
+   "options": "Journal Entry"
+  }
+ ],
+ "field_order": [
+  "employee",
+  "employee_name",
+  "period_end",
+  "late_days",
+  "from_leave",
+  "from_salary",
+  "salary_amount",
+  "additional_salary",
+  "leave_ledger_entry",
+  "journal_entry"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "autoname": "format:LDE-{#####}"
+}

@@ -1,0 +1,210 @@
+{
+ "doctype": "DocType",
+ "name": "Attendance Policy Settings",
+ "module": "Attendance Policy",
+ "issingle": 1,
+ "custom": 0,
+ "engine": "InnoDB",
+ "editable_grid": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "s1",
+   "fieldtype": "Section Break",
+   "label": "Timings (memo section 3)"
+  },
+  {
+   "fieldname": "arrival_cutoff",
+   "fieldtype": "Time",
+   "label": "Arrival cutoff",
+   "default": "09:00:00"
+  },
+  {
+   "fieldname": "grade1_end",
+   "fieldtype": "Time",
+   "label": "Grade 1 ends at",
+   "default": "10:00:00"
+  },
+  {
+   "fieldname": "grade2_end",
+   "fieldtype": "Time",
+   "label": "Grade 2 ends at",
+   "default": "11:00:00"
+  },
+  {
+   "fieldname": "second_half_cutoff",
+   "fieldtype": "Time",
+   "label": "Full-day leave if arrival at/after",
+   "default": "13:30:00"
+  },
+  {
+   "fieldname": "s2",
+   "fieldtype": "Section Break",
+   "label": "Deduction (in days)"
+  },
+  {
+   "fieldname": "grade1_deduction",
+   "fieldtype": "Float",
+   "label": "Grade 1",
+   "default": "0.166667",
+   "precision": "6"
+  },
+  {
+   "fieldname": "grade2_deduction",
+   "fieldtype": "Float",
+   "label": "Grade 2",
+   "default": "0.333333",
+   "precision": "6"
+  },
+  {
+   "fieldname": "grade3_deduction",
+   "fieldtype": "Float",
+   "label": "Grade 3",
+   "default": "0.5",
+   "precision": "6"
+  },
+  {
+   "fieldname": "full_day_deduction",
+   "fieldtype": "Float",
+   "label": "After second-half cutoff",
+   "default": "1"
+  },
+  {
+   "fieldname": "s3",
+   "fieldtype": "Section Break",
+   "label": "Reports"
+  },
+  {
+   "fieldname": "habitual_threshold",
+   "fieldtype": "Int",
+   "label": "Habitual late-comer: late count in month >=",
+   "default": "3"
+  },
+  {
+   "fieldname": "report_recipients",
+   "fieldtype": "Small Text",
+   "label": "Daily report recipients",
+   "description": "Comma or new-line separated emails"
+  },
+  {
+   "fieldname": "s4",
+   "fieldtype": "Section Break",
+   "label": "Leave rules (memo section 4)"
+  },
+  {
+   "fieldname": "casual_leave_type",
+   "fieldtype": "Link",
+   "label": "Casual/Sick Leave Type",
+   "options": "Leave Type"
+  },
+  {
+   "fieldname": "annual_leave_type",
+   "fieldtype": "Link",
+   "label": "Annual Leave Type",
+   "options": "Leave Type"
+  },
+  {
+   "fieldname": "max_consecutive_casual",
+   "fieldtype": "Int",
+   "label": "Max consecutive casual days",
+   "default": "3"
+  },
+  {
+   "fieldname": "s5",
+   "fieldtype": "Section Break",
+   "label": "Month-end"
+  },
+  {
+   "fieldname": "deduct_from_leave_first",
+   "fieldtype": "Check",
+   "label": "Deduct from casual leave balance first",
+   "default": "1"
+  },
+  {
+   "fieldname": "salary_component",
+   "fieldtype": "Link",
+   "label": "Salary Component",
+   "options": "Salary Component",
+   "default": "Late Arrival Deduction"
+  },
+  {
+   "fieldname": "salary_days_divisor",
+   "fieldtype": "Int",
+   "label": "Days in month for per-day salary",
+   "default": "30"
+  },
+  {
+   "fieldname": "create_journal_entry",
+   "fieldtype": "Check",
+   "label": "Also create Journal Entry (usually OFF; payroll already books deductions)"
+  },
+  {
+   "fieldname": "je_debit_account",
+   "fieldtype": "Link",
+   "label": "JE Debit Account",
+   "options": "Account",
+   "depends_on": "create_journal_entry"
+  },
+  {
+   "fieldname": "je_credit_account",
+   "fieldtype": "Link",
+   "label": "JE Credit Account",
+   "options": "Account",
+   "depends_on": "create_journal_entry"
+  }
+ ],
+ "field_order": [
+  "company",
+  "s1",
+  "arrival_cutoff",
+  "grade1_end",
+  "grade2_end",
+  "second_half_cutoff",
+  "s2",
+  "grade1_deduction",
+  "grade2_deduction",
+  "grade3_deduction",
+  "full_day_deduction",
+  "s3",
+  "habitual_threshold",
+  "report_recipients",
+  "s4",
+  "casual_leave_type",
+  "annual_leave_type",
+  "max_consecutive_casual",
+  "s5",
+  "deduct_from_leave_first",
+  "salary_component",
+  "salary_days_divisor",
+  "create_journal_entry",
+  "je_debit_account",
+  "je_credit_account"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  }
+ ]
+}
