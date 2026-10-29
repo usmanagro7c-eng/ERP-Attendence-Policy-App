@@ -57,4 +57,5 @@ venv.bak/
 
 # Root scratch files (prevent accidental loose python files in root)
 /*.py
-qa_report/
+qa/screenshots/
+.playwright-mcp/

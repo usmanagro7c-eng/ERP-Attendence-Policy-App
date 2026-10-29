@@ -1,8 +1,8 @@
 # 🎉 ATTENDANCE POLICY - INSTALLATION COMPLETE
 
 **Date:** 2026-10-28  
-**Server:** 192.168.1.100  
-**Site:** erp.local  
+**Server:** <SERVER_IP>  
+**Site:** <SITE_NAME>  
 **Status:** ✅ FULLY CONFIGURED AND READY
 
 ---
@@ -55,7 +55,7 @@
 - **Company:** Demo Company
 - **Casual Leave Type:** Casual Leave
 - **Annual Leave Type:** Annual Leave
-- **Email Recipients:** admin@example.com
+- **Email Recipients:** <NOTIFICATION_EMAIL>
 
 **Grading Rules:**
 - Arrival cutoff: 09:00 AM (on-time threshold)
@@ -88,7 +88,7 @@
   - After 01:30 PM = Full day
 
 ✓ Creates Late Arrival Log entries  
-✓ Sends HTML email report to: **admin@example.com**
+✓ Sends HTML email report to: **<NOTIFICATION_EMAIL>**
   - Check-in/out times for all employees
   - Late grades and deductions
   - List of no-shows
@@ -113,9 +113,9 @@
 
 ## 🌐 Access Your System
 
-**Web UI:** http://192.168.1.100/desk  
-**Username:** admin@example.com  
-**Password:** Admin@123
+**Web UI:** http://<SERVER_IP>/desk  
+**Username:** <ADMIN_USER>  
+**Password:** <ADMIN_PASSWORD>
 
 ### Navigation
 1. **Search bar** → Type "Attendance Policy"
@@ -185,12 +185,12 @@ For production use with real employees:
 ### Manual Testing Commands
 ```bash
 # Run daily job now
-ssh frappe@192.168.1.100
+ssh <BENCH_USER>@<SERVER_IP>
 cd ~/frappe-bench
-bench --site erp.local execute attendance_policy.tasks.daily_job
+bench --site <SITE_NAME> execute attendance_policy.tasks.daily_job
 
 # Month-end dry run
-bench --site erp.local console
+bench --site <SITE_NAME> console
 >>> from attendance_policy.attendance_policy.doctype.attendance_policy_settings.attendance_policy_settings import process_month_end
 >>> process_month_end('2026-10-31', dry_run=True)
 ```
@@ -238,25 +238,23 @@ bench --site erp.local console
 
 **1. Check logs:**
 ```bash
-ssh frappe@192.168.1.100
+ssh <BENCH_USER>@<SERVER_IP>
 tail -f ~/frappe-bench/logs/error.log
 ```
 
 **2. Verify installation:**
 ```bash
-bench --site erp.local console
->>> from attendance_policy.verify_installation import verify_installation
->>> verify_installation()
+bench --site <SITE_NAME> run-tests --app attendance_policy
 ```
 
 **3. Check scheduler:**
 ```bash
-bench --site erp.local doctor
+bench --site <SITE_NAME> doctor
 ```
 
 **4. Manual job execution:**
 ```bash
-bench --site erp.local execute attendance_policy.tasks.daily_job
+bench --site <SITE_NAME> execute attendance_policy.tasks.daily_job
 ```
 
 ### Common Issues
@@ -276,7 +274,7 @@ bench --site erp.local execute attendance_policy.tasks.daily_job
 - ✓ Daily job tested successfully
 - ✓ Email configured
 
-**Login now and explore:** http://192.168.1.100/desk
+**Login now and explore:** http://<SERVER_IP>/desk
 
 **The system will automatically:**
 - Send daily email at 9:00 PM tonight
