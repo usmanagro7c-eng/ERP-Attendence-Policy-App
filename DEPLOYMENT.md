@@ -20,11 +20,11 @@ bench --site YOUR_SITE install-app attendance_policy
 # 3. Run migrations
 bench --site YOUR_SITE migrate
 
-# 4. Verify installation
-bench --site YOUR_SITE execute attendance_policy.verify_installation
+# 4. Verify installation via test suite
+bench --site YOUR_SITE run-tests --app attendance_policy
 
-# 5. Optional: Create demo data for testing
-bench --site YOUR_SITE execute attendance_policy.test_setup.create_demo_data
+# 5. Optional: Auto-provision default configuration
+# Open Attendance Policy Settings in Desk -> Actions -> Setup Default Shifts & Policy
 ```
 
 ## Post-Installation Configuration
@@ -153,7 +153,7 @@ bench --site YOUR_SITE run-tests --app attendance_policy --module attendance_pol
 ### 2. Daily Job Test
 ```bash
 # Create demo data first
-bench --site YOUR_SITE execute attendance_policy.test_setup.create_demo_data
+bench --site YOUR_SITE run-tests --app attendance_policy
 
 # Run daily job for today
 bench --site YOUR_SITE execute attendance_policy.tasks.daily_job
@@ -314,17 +314,10 @@ grep "attendance_policy.tasks" logs/scheduler.log
 ## Support Contacts
 
 For issues:
-1. Check README.md for known limitations
-2. Review error logs
-3. Test with `verify_installation.py`
+1. Check README.md for configuration and troubleshooting
+2. Review error logs in Desk / `bench doctor`
+3. Test with `bench --site YOUR_SITE run-tests --app attendance_policy`
 4. Create GitHub issue with logs and steps to reproduce
-
-## Cleanup (for testing only)
-
-Remove demo data:
-```bash
-bench --site YOUR_SITE execute attendance_policy.test_setup.cleanup_demo_data
-```
 
 Uninstall app:
 ```bash

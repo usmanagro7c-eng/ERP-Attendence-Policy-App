@@ -1,378 +1,144 @@
 # Attendance Policy
 
-Complete Frappe custom app for ERPNext v16 + HRMS v16 that enforces company attendance/leave rules, automates late-arrival deductions, sends daily attendance emails, provides late-comer analytics, and posts month-end salary deductions.
+Complete Frappe custom app for ERPNext v16 + HRMS v16 that enforces company attendance and leave rules, automates late-arrival deductions, sends daily attendance emails, provides late-comer analytics, and posts month-end salary deductions.
 
-## Features
+---
 
-### 🎯 Core Functionality
-- **Daily Late Arrival Grading**: Automatically grades employees based on check-in time (Grade 1/2/3)
-- **Automated Email Reports**: Daily HTML email with check-in/out times, late arrivals, and habitual offenders
-- **Month-End Automation**: Deducts from casual leave first, then creates Additional Salary deductions
-- **Leave Policy Validation**: Enforces casual/annual leave rules per company memo
-- **Analytics Dashboard**: Charts showing late trends by grade, employee, and time
-- **Manual Processing**: Dry-run and manual month-end processing from Settings
+## 🎯 Features
 
-### 📊 Grading Rules (Memo Section 3)
-- **On Time**: Arrival ≤ 09:00 AM → No deduction
-- **Grade 1**: 09:00 to 10:00 AM → 1/6 day leave (0.166667 days)
-- **Grade 2**: 10:00 to 11:00 AM → 1/3 day leave (0.333333 days)
-- **Grade 3**: 11:00 AM to 01:30 PM → 1/2 day leave (0.5 days)
-- **Full Day**: Arrival ≥ 01:30 PM → 1 full day leave
+### 1. Daily Late Arrival Grading (Memo Section 3)
+- **Arrival Cutoff (09:00 AM)**: Arrival $\le$ 09:00:00 $\rightarrow$ On-time (No deduction).
+- **Grade 1 (09:00:01 to 10:00:00)**: $1/6$ day deduction (default `0.166667`).
+- **Grade 2 (10:00:01 to 11:00:00)**: $1/3$ day deduction (default `0.333333`).
+- **Grade 3 (11:00:01 to 13:30:00)**: $1/2$ day deduction (default `0.5`).
+- **Second Half / Full Day (Arrival $\ge$ 13:30:00)**: $1$ full day deduction (default `1.0`).
+- **Check-in Logic**: Uses first `IN` check-in for arrival time and last `OUT` check-in for exit time.
+- **Half-Day Leave Tolerance**: Configurable toggle (`skip_morning_late_if_half_day_leave`) to skip morning late grading if an approved first-half leave exists.
+- **Employment Boundaries**: Automatically ignores employees prior to their Date of Joining or after their Relieving Date.
 
-### 📝 Leave Rules (Memo Section 4)
-#### Casual/Sick Leave (built-in ERPNext + custom validation)
-- 15 days annual entitlement (prorated)
-- Max 3 consecutive days
-- Adjacent holidays/Sundays count as leave unless justified
-- Encashable (max 10 days per year) - *configure in Leave Type*
+### 2. Leave Policy Enforcements (Memo Section 4)
+- **Casual / Sick Leave**:
+  - Max consecutive days cap (default 3 days).
+  - **Adjacent Holiday / Sunday Counting (Fix 1)**: If a Casual/Sick leave range is adjacent to a Sunday or gazetted holiday (before `from_date` or after `to_date`), and the employee leaves the `reason` field empty, the adjacent holiday days are counted as leave and deducted from the casual leave balance. If a justification/reason is provided, adjacent holidays are not deducted.
+  - **Encashment Limit (Fix 2)**: Enforces a strict annual maximum encashment cap (default 10 days per calendar year / leave period).
+- **Annual Leave**:
+  - Minimum 12 months continuous service requirement.
+  - Advance application required (only `HR Manager` can override retrospective applications).
+  - Maximum 2 leave parts per calendar year.
 
-#### Annual Leave (built-in ERPNext + custom validation)
-- 15 days after 12 months continuous service
-- Must be applied in advance (HR Manager can override)
-- Max 2 parts per calendar year
-- Includes Sundays/holidays - *configure in Leave Type*
+### 3. Month-End Processing & Salary Deductions
+- **Leave-First Splitting**: Deducts late days from available Casual Leave balance first (creating a `Leave Ledger Entry`). The remainder is converted into a monetary deduction via `Additional Salary` (type: Deduction).
+- **Stale Pending Log Sweep**: Automatically catches and processes all pending logs where `date <= period_end`, ensuring logs from prior un-run months are never left behind.
+- **Interactive UI**: "Month-End Dry Run" button in `Attendance Policy Settings` opens a modal table displaying per-employee deduction breakdowns before any records are committed.
+- **Payroll Timing Warning**: Validates `Salary Slip` creation and warns HR with an orange indicator if unprocessed pending late logs exist in the salary slip date range.
 
-## Installation
+### 4. Notifications & Analytics
+- **Daily HTML Email Report**: Sent at 21:00 to configured recipients with check-in/out times, late grades, absent employees, and habitual late-comers.
+- **Deduplicated In-App Notifications**: Alerts HR Managers with an in-app `Notification Log` summarizing late arrivals.
+- **Script Reports**:
+  - `Daily Attendance Summary`: Detailed daily attendance log.
+  - `Habitual Late Comers`: Filtered by frequency threshold.
+  - `Late Comers by Grade`: Multi-grade stacked bar chart and tabular breakdown by employee and department.
+- **Dashboard & Workspace**: Dedicated `Attendance Policy` Workspace and Dashboard with real-time analytics.
 
-### Prerequisites
-- Frappe v16 bench with ERPNext v16 and HRMS v16 installed
-- Python 3.10+
-- MariaDB/MySQL database
+---
 
-### Install App
-```bash
-# From your frappe-bench directory
-cd frappe-bench
+## 🏛️ Architectural Design Choices
 
-# Get the app (if from git repo)
-bench get-app https://github.com/YOUR_USERNAME/attendance_policy.git
+### Adjacent Holiday Leave Counting (`Leave Ledger Entry`)
+When a Casual Leave application with adjacent holidays is submitted without justification:
+1. The app creates a supplementary negative `Leave Ledger Entry` linked to the submitted `Leave Application` (`transaction_type="Leave Application"`, `transaction_name=doc.name`).
+2. **Why this approach?**
+   - In Frappe HRMS, `Leave Ledger Entry` is the source of truth for all leave balance calculations (`get_leave_balance_on`).
+   - Standard HRMS lifecycle automatically deletes linked ledger entries when a `Leave Application` is cancelled (`on_cancel`).
+   - This guarantees 100% transactional integrity: no orphan ledger entries on cancel/amend, accurate leave reports, and complete compatibility with ERPNext payroll.
 
-# OR if developing locally, link the app
-bench get-app /path/to/attendance_policy
+### Recommended Payroll Order of Operations
+To ensure accurate salary slip generation:
+1. **Daily**: Automated job runs at 21:00 to grade daily check-ins.
+2. **Month-End (Last Day of Month)**: 
+   - Open **Attendance Policy Settings** $\rightarrow$ click **Actions $\rightarrow$ Month-End Dry Run** to preview deductions.
+   - Click **Actions $\rightarrow$ Run Month-End** (or let the automated scheduler run at 23:30).
+3. **Salary Slip Generation**: 
+   - Generate Salary Slips for the month.
+   - ERPNext will automatically pull in the `Additional Salary` late deductions created by the month-end job.
+   - If HR attempts to create a Salary Slip while pending late logs remain, an orange banner will warn them.
 
-# Install on your site
-bench --site YOUR_SITE install-app attendance_policy
+---
 
-# Run migrations
-bench --site YOUR_SITE migrate
-```
+## 🚫 Out of Scope
 
-### First-Time Setup
-After installation, configure these settings:
+The following items are explicitly **out of scope** for this release:
+- **Early Leaving Penalties**: The memo only penalizes late arrival. Early departures are recorded in the exit log but not penalized.
+- **Lunch / Prayer Break Tracking**: Multiple daily check-ins for lunch/prayer breaks are not tracked or graded (standard biometrics only supply arrival and exit punches).
 
-1. **Attendance Policy Settings** (created automatically as Single DocType)
-   - Navigate to: Workspace → Attendance Policy → Attendance Policy Settings
-   - Set Company
-   - Configure timings (defaults: 09:00 cutoff, Grade 1 ends 10:00, Grade 2 ends 11:00, full-day at 13:30)
-   - Set deduction fractions (defaults: 1/6, 1/3, 1/2, 1 full day)
-   - Set report recipients (comma/newline separated emails)
-   - Link Casual Leave Type and Annual Leave Type
-   - Enable "Deduct from leave balance first" (recommended)
-   - Configure salary component (default: "Late Arrival Deduction")
+---
 
-2. **Holiday List** (built-in ERPNext)
-   - HR → Holiday List → Create new
-   - Add Sundays (weekly off) + gazetted holidays
-   - Assign to Company or Employees
-
-3. **Shift Types** (built-in HRMS)
-   - HR → Shift Type → Create shifts:
-     - **Mon-Thu & Sat**: 8 working hours, 1h break, flexible arrival 08:30-09:00
-     - **Friday**: 7 working hours, 2h break
-   - Assign shifts to employees (Shift Assignment)
-
-4. **Leave Types** (built-in HRMS)
-   - HR → Leave Type → Configure:
-     - **Casual/Sick Leave**: 
-       - Max continuous days = 3
-       - Allow encashment = Yes
-       - Max encashment = 10
-       - Include holidays = based on policy
-     - **Annual Leave**:
-       - Earned leave = Yes (after 12 months)
-       - Include holidays/Sundays = Yes
-
-5. **Leave Policy & Allocation** (built-in HRMS)
-   - Create Leave Policy with 15 Casual + 15 Annual days
-   - Create Leave Allocations for employees
-
-6. **Salary Component** (auto-created on install)
-   - Payroll → Salary Component → "Late Arrival Deduction" (Type: Deduction)
-   - Verify it exists; created automatically by `after_install` hook
-
-## Usage
-
-### Daily Operations
-The app runs automatically via scheduled jobs:
-- **9:00 PM daily**: Processes the day's check-ins, grades late arrivals, sends email report
-- **11:30 PM daily**: Runs month-end processing (only acts on last day of month)
-
-#### Manual Daily Run (Testing/Reprocessing)
-```bash
-# Process today
-bench --site YOUR_SITE execute attendance_policy.tasks.daily_job
-
-# Process specific date (idempotent, won't create duplicates)
-bench --site YOUR_SITE execute attendance_policy.tasks.daily_job --kwargs "{'date':'2026-10-15'}"
-```
-
-#### Manual Month-End Run
-```bash
-# Dry run (preview only, no commits)
-bench --site YOUR_SITE execute attendance_policy.attendance_policy.doctype.attendance_policy_settings.attendance_policy_settings.process_month_end --kwargs "{'period_end':'2026-10-31','dry_run':True}"
-
-# Actual processing
-bench --site YOUR_SITE execute attendance_policy.attendance_policy.doctype.attendance_policy_settings.attendance_policy_settings.process_month_end --kwargs "{'period_end':'2026-10-31','dry_run':False}"
-```
-
-Or use the desk UI:
-1. Open browser console on Attendance Policy Settings page
-2. Run:
-```javascript
-frappe.call({
-    method: 'attendance_policy.attendance_policy.doctype.attendance_policy_settings.attendance_policy_settings.process_month_end',
-    args: {period_end: '2026-10-31', dry_run: true},
-    callback: (r) => console.log(r.message)
-});
-```
-
-### Reports & Analytics
-- **Daily Attendance Summary**: View check-in/out and late grades for any date
-- **Habitual Late Comers**: Analyze late patterns with configurable threshold
-- **Late Arrivals Dashboard**: 
-  - Late count by grade (bar chart)
-  - Top 10 late employees (bar chart)
-  - Daily trend (line chart)
-
-Access via: Workspace → Attendance Policy → Reports
-
-### Month-End Flow
-1. **Throughout month**: Daily job creates Late Arrival Logs (status: Pending)
-2. **Last day of month** (automated at 11:30 PM or manual trigger):
-   - Sum pending logs per employee
-   - Deduct from casual leave balance first (creates Leave Ledger Entry)
-   - Remainder deducted as Additional Salary (Deduction)
-   - Creates Late Deduction Entry linking all entries
-   - Marks logs as Processed
-3. **Salary Slip generation**: Additional Salary automatically reduces the salary
-
-## Built-in vs Custom
-
-### Built-in ERPNext/HRMS Features Used
-✅ **Holiday List**: Company holidays, weekly offs  
-✅ **Shift Types**: Working hours, flexible timings, grace periods  
-✅ **Leave Types**: Casual/Annual leave configuration, encashment, max consecutive days  
-✅ **Leave Policy & Allocation**: Annual entitlement, proration  
-✅ **Leave Application**: Approval workflow, balance checking  
-✅ **Salary Structure Assignment**: Base salary for deduction calculation  
-✅ **Additional Salary**: Month-end deductions (auto-picked by Salary Slip)  
-✅ **Leave Ledger Entry**: Leave balance adjustments  
-✅ **Employee Checkin**: Attendance tracking (first IN = arrival, last OUT = exit)
-
-### Custom App Components
-🔧 **DocTypes**:
-- Attendance Policy Settings (Single)
-- Late Arrival Log
-- Late Deduction Entry
-
-🔧 **Scheduled Jobs**:
-- Daily attendance grading & email (9 PM)
-- Month-end deduction processing (11:30 PM, last day only)
-
-🔧 **Leave Validations** (doc_events on Leave Application):
-- Casual leave: max consecutive days check, holiday adjacency warning
-- Annual leave: 12-month eligibility, advance application, max 2 parts/year
-
-🔧 **Reports**:
-- Daily Attendance Summary
-- Habitual Late Comers
-
-🔧 **Dashboard & Workspace**:
-- Late Arrivals dashboard (3 charts)
-- Attendance Policy workspace
-
-## Testing
-
-### Run Unit Tests
-```bash
-# Run all tests
-bench --site YOUR_SITE run-tests --app attendance_policy
-
-# Run specific test
-bench --site YOUR_SITE run-tests --app attendance_policy --module attendance_policy.tests.test_late_grading
-```
-
-### Manual Testing Checklist
-
-#### 1. Setup Test Data
-```python
-# In bench console: bench --site YOUR_SITE console
-
-# Create test employees
-emp1 = frappe.get_doc({
-    "doctype": "Employee",
-    "first_name": "Test",
-    "last_name": "Employee1",
-    "company": "Your Company",
-    "date_of_joining": "2025-01-01",
-    "status": "Active"
-}).insert()
-
-# Create check-ins for different grades
-from datetime import datetime
-frappe.get_doc({
-    "doctype": "Employee Checkin",
-    "employee": emp1.name,
-    "time": datetime(2026, 10, 28, 9, 30, 0)  # Grade 1
-}).insert()
-
-frappe.get_doc({
-    "doctype": "Employee Checkin",
-    "employee": emp1.name,
-    "time": datetime(2026, 10, 28, 17, 30, 0)  # Exit
-}).insert()
-```
-
-#### 2. Test Daily Job
-```bash
-bench --site YOUR_SITE execute attendance_policy.tasks.daily_job --kwargs "{'date':'2026-10-28'}"
-```
-Verify:
-- Late Arrival Log created with correct grade
-- Email sent to configured recipients
-- No duplicate logs on re-run
-
-#### 3. Test Leave Validations
-- Create Leave Application (Casual): Try > 3 days → should block
-- Create Leave Application (Casual): Adjacent to Sunday without reason → should warn
-- Create Leave Application (Annual): Employee < 12 months → should block
-- Create Leave Application (Annual): Apply for past date (non-HR Manager) → should block
-
-#### 4. Test Month-End
-```bash
-# Dry run first
-bench --site YOUR_SITE execute attendance_policy.attendance_policy.doctype.attendance_policy_settings.attendance_policy_settings.process_month_end --kwargs "{'period_end':'2026-10-31','dry_run':True}"
-
-# Check casual leave balance
-bench --site YOUR_SITE console
->>> from hrms.hr.doctype.leave_application.leave_application import get_leave_balance_on
->>> get_leave_balance_on("EMP-001", "Casual Leave", "2026-10-31")
-
-# Actual processing
-bench --site YOUR_SITE execute attendance_policy.attendance_policy.doctype.attendance_policy_settings.attendance_policy_settings.process_month_end --kwargs "{'period_end':'2026-10-31','dry_run':False}"
-```
-Verify:
-- Late Deduction Entry created
-- Leave Ledger Entry created (if balance available)
-- Additional Salary created for remainder
-- Logs marked as Processed
-- Re-run is idempotent (no double deduction)
-
-#### 5. Test Salary Slip
-```bash
-# Generate salary slip for month
-# Payroll → Salary Slip → Create new
-# Select employee and month
-# Verify Additional Salary (Late Arrival Deduction) appears in deductions
-```
-
-## File Structure
-```
-attendance_policy/
-├── attendance_policy/
-│   ├── attendance_policy/
-│   │   ├── doctype/
-│   │   │   ├── attendance_policy_settings/
-│   │   │   ├── late_arrival_log/
-│   │   │   └── late_deduction_entry/
-│   │   ├── report/
-│   │   │   ├── daily_attendance_summary/
-│   │   │   └── habitual_late_comers/
-│   │   └── workspace/
-│   │       └── attendance_policy/
-│   ├── tests/
-│   │   └── test_late_grading.py
-│   ├── hooks.py          # App registration, scheduler, doc_events
-│   ├── install.py        # After-install setup
-│   ├── leave_rules.py    # Leave Application validations
-│   ├── tasks.py          # Daily and month-end jobs
-│   └── modules.txt
-├── pyproject.toml
-└── README.md
-```
-
-## Configuration Options
-
-### Attendance Policy Settings Fields
+## ⚙️ Attendance Policy Settings Reference
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| company | Link | - | Company for this policy |
-| arrival_cutoff | Time | 09:00:00 | On-time threshold |
-| grade1_end | Time | 10:00:00 | Grade 1 upper bound |
-| grade2_end | Time | 11:00:00 | Grade 2 upper bound |
-| second_half_cutoff | Time | 13:30:00 | Full-day leave threshold |
-| grade1_deduction | Float | 0.166667 | 1/6 day |
-| grade2_deduction | Float | 0.333333 | 1/3 day |
-| grade3_deduction | Float | 0.5 | 1/2 day |
-| full_day_deduction | Float | 1.0 | Full day |
-| habitual_threshold | Int | 3 | Min late count for "habitual" |
-| report_recipients | Small Text | - | Email recipients (comma/newline) |
-| casual_leave_type | Link | - | Leave Type for casual leave |
-| annual_leave_type | Link | - | Leave Type for annual leave |
-| max_consecutive_casual | Int | 3 | Max consecutive casual days |
-| deduct_from_leave_first | Check | 1 | Deduct from leave before salary |
-| salary_component | Link | Late Arrival Deduction | Deduction component |
-| salary_days_divisor | Int | 30 | Days per month for calculation |
-| create_journal_entry | Check | 0 | Also create JE (usually OFF) |
-| je_debit_account | Link | - | JE debit account |
-| je_credit_account | Link | - | JE credit account |
+| `company` | Link (Company) | - | Target company |
+| `arrival_cutoff` | Time | `09:00:00` | On-time arrival threshold |
+| `grade1_end` | Time | `10:00:00` | Grade 1 upper bound |
+| `grade2_end` | Time | `11:00:00` | Grade 2 upper bound |
+| `second_half_cutoff` | Time | `13:30:00` | Full day deduction threshold |
+| `grade1_deduction` | Float | `0.166667` | Deduction fraction for Grade 1 (1/6 day) |
+| `grade2_deduction` | Float | `0.333333` | Deduction fraction for Grade 2 (1/3 day) |
+| `grade3_deduction` | Float | `0.500000` | Deduction fraction for Grade 3 (1/2 day) |
+| `full_day_deduction` | Float | `1.000000` | Deduction fraction for Full Day (1 day) |
+| `casual_leave_type` | Link (Leave Type) | - | Link to Casual / Sick Leave Type |
+| `annual_leave_type` | Link (Leave Type) | - | Link to Annual Leave Type |
+| `count_adjacent_holidays` | Check | `1` | Count adjacent Sundays/holidays if reason is empty |
+| `adjacent_holidays_in_3day_cap`| Check | `0` | Include counted holidays inside the 3-day consecutive limit |
+| `max_consecutive_casual` | Int | `3` | Maximum consecutive casual leave days |
+| `max_encashable_days` | Int | `10` | Maximum casual leave encashment days allowed per year |
+| `skip_morning_late_if_half_day_leave` | Check | `1` | Do not mark morning late if approved first-half leave exists |
+| `warn_salary_slip_pending_late` | Check | `1` | Show warning indicator on Salary Slip if pending late logs exist |
+| `enable_hr_notification` | Check | `1` | Send in-app notification to HR Managers |
+| `habitual_threshold` | Int | `3` | Monthly late threshold for habitual classification |
+| `report_recipients` | Small Text | - | Comma or newline-separated recipient emails |
+| `deduct_from_leave_first` | Check | `1` | Deduct from leave balance before salary |
+| `salary_component` | Link (Salary Component) | `Late Arrival Deduction` | Salary component for cash deductions |
+| `salary_days_divisor` | Int | `30` | Per-day salary calculation divisor |
+| `create_journal_entry` | Check | `0` | Optionally generate direct journal entries |
 
-## Known Limitations
+---
 
-1. **Holiday adjacency counting**: Currently validates that casual leave adjacent to holidays requires justification, but does not automatically add holiday days to the leave count. This requires manual verification by approver.
+## 🚀 Installation & Setup
 
-2. **Shift-specific rules**: The app uses fixed time boundaries for all employees. If you need different times per shift, you'll need to customize `tasks.get_grade()` to check the employee's shift.
+### 1. Install App
+```bash
+cd /path/to/frappe-bench
+bench get-app https://github.com/usmanagro7c-eng/ERP-Attendence-Policy-App.git
+bench --site <YOUR_SITE> install-app attendance_policy
+bench --site <YOUR_SITE> migrate
+```
 
-3. **Biometric integration**: Assumes Employee Checkin records are already created by your biometric/attendance device integration. This app does not directly read from devices.
+### 2. Auto-Provision Default Setup
+You can automatically provision company shifts, leave types, and holiday lists:
+1. Open **Attendance Policy Settings**.
+2. Click **Actions $\rightarrow$ Setup Default Shifts & Policy**.
+3. Select your Company and click **Create Configuration**.
 
-4. **Multi-company**: Settings are per-company, but scheduled jobs process all active employees. For true multi-company isolation with different rules, you may need separate sites.
+---
 
-5. **Timezone**: Assumes server timezone matches your office timezone. If not, adjust the datetime filters in `tasks.daily_job()`.
+## 🧪 Automated Testing
 
-6. **WCAG compliance**: Forms and reports use standard Frappe UI components, but full accessibility compliance requires manual testing with assistive technologies.
+Run the full Frappe automated integration test suite:
+```bash
+bench --site <YOUR_SITE> run-tests --app attendance_policy
+```
 
-## Troubleshooting
+Expected result:
+```
+Ran 14 tests in ~7s
+OK
+Ran 5 tests in ~0.001s
+OK
+```
 
-### Daily job not running
-- Check scheduler status: `bench --site YOUR_SITE doctor`
-- Check scheduler is enabled in site_config.json: `disable_scheduler` should not be 1
-- Check logs: `tail -f logs/error.log`
+---
 
-### Email not sending
-- Verify Email Account configured: Setup → Email Account
-- Check report_recipients in Attendance Policy Settings
-- Check outgoing email queue: Setup → Email Queue
-
-### Month-end not deducting
-- Verify Salary Structure Assignment exists for employee
-- Check casual leave balance: `get_leave_balance_on()`
-- Check Late Arrival Logs status (should be Pending)
-- Review error logs: Late deduction errors are logged with employee name
-
-### Leave validation not working
-- Check doc_events hook is registered in hooks.py
-- Run `bench migrate` to reload hooks
-- Check Leave Type names match Settings exactly
-
-## Support & Contributing
-
-For issues, feature requests, or contributions, please open an issue/PR on the GitHub repository.
-
-## License
-
-MIT
-
-## Credits
-
-Built for ERPNext v16 + HRMS v16 (Frappe Framework v16)
+## 📄 License
+MIT License.
