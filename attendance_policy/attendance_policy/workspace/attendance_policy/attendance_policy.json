@@ -1,6 +1,10 @@
 {
  "charts": [
   {
+   "chart_name": "Late Comers by Grade",
+   "label": "Late Comers by Grade (Stacked)"
+  },
+  {
    "chart_name": "Late Arrivals by Grade",
    "label": "Late Arrivals by Grade"
   },
@@ -86,6 +90,17 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 1,
+   "label": "Late Comers by Grade",
+   "link_count": 0,
+   "link_to": "Late Comers by Grade",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 1,
    "label": "Daily Attendance Summary",
    "link_count": 0,
    "link_to": "Daily Attendance Summary",
@@ -124,7 +139,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-28 12:04:00",
+ "modified": "2026-10-29 15:30:00",
  "modified_by": "Administrator",
  "module": "Attendance Policy",
  "name": "Attendance Policy",
