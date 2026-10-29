@@ -69,6 +69,12 @@
    "fieldtype": "Link",
    "label": "Journal Entry",
    "options": "Journal Entry"
+  },
+  {
+   "fieldname": "included_periods",
+   "fieldtype": "Small Text",
+   "label": "Included Months / Dates",
+   "read_only": 1
   }
  ],
  "field_order": [
@@ -81,7 +87,8 @@
   "salary_amount",
   "additional_salary",
   "leave_ledger_entry",
-  "journal_entry"
+  "journal_entry",
+  "included_periods"
  ],
  "permissions": [
   {
@@ -101,7 +108,12 @@
    "delete": 1,
    "report": 1,
    "export": 1
+  },
+  {
+   "role": "HR User",
+   "read": 1,
+   "report": 1,
+   "export": 1
   }
- ],
- "autoname": "format:LDE-{#####}"
+ ]
 }

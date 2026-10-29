@@ -45,6 +45,12 @@
    "default": "13:30:00"
   },
   {
+   "fieldname": "skip_morning_late_if_half_day_leave",
+   "fieldtype": "Check",
+   "label": "Skip morning late grading if employee has approved half-day leave",
+   "default": "1"
+  },
+  {
    "fieldname": "s2",
    "fieldtype": "Section Break",
    "label": "Deduction (in days)"
@@ -79,7 +85,7 @@
   {
    "fieldname": "s3",
    "fieldtype": "Section Break",
-   "label": "Reports"
+   "label": "Reports & Notifications"
   },
   {
    "fieldname": "habitual_threshold",
@@ -92,6 +98,12 @@
    "fieldtype": "Small Text",
    "label": "Daily report recipients",
    "description": "Comma or new-line separated emails"
+  },
+  {
+   "fieldname": "enable_hr_notification",
+   "fieldtype": "Check",
+   "label": "Send in-app notification to HR Managers",
+   "default": "1"
   },
   {
    "fieldname": "s4",
@@ -117,9 +129,27 @@
    "default": "3"
   },
   {
+   "fieldname": "count_adjacent_holidays",
+   "fieldtype": "Check",
+   "label": "Count adjacent holidays/Sundays as leave if Reason is empty",
+   "default": "1"
+  },
+  {
+   "fieldname": "adjacent_holidays_in_3day_cap",
+   "fieldtype": "Check",
+   "label": "Include counted adjacent holidays in 3-consecutive-day cap",
+   "default": "0"
+  },
+  {
+   "fieldname": "max_encashable_days",
+   "fieldtype": "Int",
+   "label": "Max encashable casual leave days per year",
+   "default": "10"
+  },
+  {
    "fieldname": "s5",
    "fieldtype": "Section Break",
-   "label": "Month-end"
+   "label": "Month-end & Payroll"
   },
   {
    "fieldname": "deduct_from_leave_first",
@@ -139,6 +169,12 @@
    "fieldtype": "Int",
    "label": "Days in month for per-day salary",
    "default": "30"
+  },
+  {
+   "fieldname": "warn_salary_slip_pending_late",
+   "fieldtype": "Check",
+   "label": "Warn on Salary Slip if unprocessed pending late logs exist",
+   "default": "1"
   },
   {
    "fieldname": "create_journal_entry",
@@ -167,6 +203,7 @@
   "grade1_end",
   "grade2_end",
   "second_half_cutoff",
+  "skip_morning_late_if_half_day_leave",
   "s2",
   "grade1_deduction",
   "grade2_deduction",
@@ -175,14 +212,19 @@
   "s3",
   "habitual_threshold",
   "report_recipients",
+  "enable_hr_notification",
   "s4",
   "casual_leave_type",
   "annual_leave_type",
   "max_consecutive_casual",
+  "count_adjacent_holidays",
+  "adjacent_holidays_in_3day_cap",
+  "max_encashable_days",
   "s5",
   "deduct_from_leave_first",
   "salary_component",
   "salary_days_divisor",
+  "warn_salary_slip_pending_late",
   "create_journal_entry",
   "je_debit_account",
   "je_credit_account"
