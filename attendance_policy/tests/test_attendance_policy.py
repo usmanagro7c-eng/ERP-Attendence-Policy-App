@@ -344,6 +344,48 @@ class TestAttendancePolicy(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Late Arrival Log", {"employee": emp_future, "attendance_date": test_date}))
 		self.assertFalse(frappe.db.exists("Late Arrival Log", {"employee": emp_relieved, "attendance_date": test_date}))
 
+	def test_daily_job_with_skip_auto_attendance_biometric(self):
+		emp = self.create_employee("BiometricZK")
+		test_date = "2026-11-04"
+
+		frappe.db.sql("DELETE FROM `tabLate Arrival Log` WHERE employee=%s", emp)
+		frappe.db.sql("DELETE FROM `tabEmployee Checkin` WHERE employee=%s", emp)
+		frappe.db.commit()
+
+		# Checkin created like zkteco_sync (skip_auto_attendance = 1)
+		frappe.get_doc({
+			"doctype": "Employee Checkin",
+			"employee": emp,
+			"time": f"{test_date} 09:20:00",
+			"log_type": "IN",
+			"skip_auto_attendance": 1,
+			"device_id": "192.168.20.2",
+		}).insert(ignore_permissions=True)
+		frappe.db.commit()
+
+		s = frappe.get_single("Attendance Policy Settings")
+		s.include_skip_auto_attendance_checkins = 1
+		s.save(ignore_permissions=True)
+
+		daily_job(date=test_date)
+		logs = frappe.get_all("Late Arrival Log", filters={"employee": emp, "attendance_date": test_date}, fields=["*"])
+		self.assertEqual(len(logs), 1, "Biometric checkin with skip_auto_attendance=1 must be processed when setting is ON")
+		self.assertEqual(logs[0].grade, "Grade 1")
+
+		# If setting is disabled, checkins with skip_auto_attendance=1 should be excluded
+		frappe.db.sql("DELETE FROM `tabLate Arrival Log` WHERE employee=%s", emp)
+		frappe.db.commit()
+		s.include_skip_auto_attendance_checkins = 0
+		s.save(ignore_permissions=True)
+
+		daily_job(date=test_date)
+		logs_disabled = frappe.get_all("Late Arrival Log", filters={"employee": emp, "attendance_date": test_date})
+		self.assertEqual(len(logs_disabled), 0, "Biometric checkin with skip_auto_attendance=1 must be ignored when setting is OFF")
+
+		# Reset setting back to 1
+		s.include_skip_auto_attendance_checkins = 1
+		s.save(ignore_permissions=True)
+
 	# ==========================================
 	# 4. HR NOTIFICATION (FIX 4)
 	# ==========================================

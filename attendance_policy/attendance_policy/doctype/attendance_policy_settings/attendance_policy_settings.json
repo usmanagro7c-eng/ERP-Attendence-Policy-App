@@ -51,6 +51,13 @@
    "default": "1"
   },
   {
+   "fieldname": "include_skip_auto_attendance_checkins",
+   "fieldtype": "Check",
+   "label": "Include Check-ins with Skip Auto Attendance (Biometric Devices)",
+   "default": "1",
+   "description": "Allow processing check-ins created by biometric sync apps (like zkteco_sync) that have skip_auto_attendance enabled"
+  },
+  {
    "fieldname": "s2",
    "fieldtype": "Section Break",
    "label": "Deduction (in days)"

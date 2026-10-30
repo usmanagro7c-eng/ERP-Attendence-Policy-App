@@ -2,6 +2,15 @@
 
 All notable changes to the `attendance_policy` Frappe custom app will be documented in this file.
 
+## [v0.0.3] - 2026-10-30
+
+### Added
+- **Biometric Check-in Ingestion:** Added `include_skip_auto_attendance_checkins` in `Attendance Policy Settings` (default `1` / ON) to process `Employee Checkin` records created by biometric synchronization tools (such as `zkteco_sync`) that mark punches with `skip_auto_attendance=1`.
+- **Company-Scoped Daily Processing:** Scoped absent detection and checkin evaluation to `s.company` when configured, aligning processing with the target company (e.g. `Usman`).
+- **Integration Test:** Added `test_daily_job_with_skip_auto_attendance_biometric` verifying biometric check-in ingestion and toggle behavior.
+
+---
+
 ## [v0.0.2] - 2026-10-29
 
 ### Added

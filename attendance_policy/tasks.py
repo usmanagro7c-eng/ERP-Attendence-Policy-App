@@ -66,13 +66,16 @@ def daily_job(date=None):
 	start_dt = datetime.combine(date, dtime.min)
 	end_dt = datetime.combine(date, dtime.max)
 
-	# Fetch valid checkins (exclude skip_auto_attendance=1)
+	# Fetch valid checkins (optionally include or exclude skip_auto_attendance=1)
+	checkin_filters = {
+		"time": ["between", [start_dt, end_dt]],
+	}
+	if not getattr(s, "include_skip_auto_attendance_checkins", 1):
+		checkin_filters["skip_auto_attendance"] = 0
+
 	logs = frappe.get_all(
 		"Employee Checkin",
-		filters={
-			"time": ["between", [start_dt, end_dt]],
-			"skip_auto_attendance": 0,
-		},
+		filters=checkin_filters,
 		fields=["name", "employee", "employee_name", "time", "log_type"],
 		order_by="time asc",
 	)
@@ -92,9 +95,12 @@ def daily_job(date=None):
 
 	absent = []
 	if not is_holiday_company_wide(date):
+		emp_filters = {"status": "Active"}
+		if getattr(s, "company", None):
+			emp_filters["company"] = s.company
 		active_emps = frappe.get_all(
 			"Employee",
-			filters={"status": "Active"},
+			filters=emp_filters,
 			fields=["name", "employee_name", "date_of_joining", "relieving_date"],
 		)
 		for e in active_emps:
@@ -119,9 +125,11 @@ def daily_job(date=None):
 
 def process_daily_employee(emp, ls, date, s, rows):
 	emp_details = frappe.db.get_value(
-		"Employee", emp, ["status", "date_of_joining", "relieving_date", "employee_name", "department"], as_dict=True
+		"Employee", emp, ["status", "company", "date_of_joining", "relieving_date", "employee_name", "department"], as_dict=True
 	)
 	if not emp_details or emp_details.status != "Active":
+		return
+	if getattr(s, "company", None) and emp_details.company and emp_details.company != s.company:
 		return
 	if emp_details.date_of_joining and getdate(emp_details.date_of_joining) > date:
 		return

@@ -94,6 +94,7 @@ The following items are explicitly **out of scope** for this release:
 | `max_consecutive_casual` | Int | `3` | Maximum consecutive casual leave days |
 | `max_encashable_days` | Int | `10` | Maximum casual leave encashment days allowed per year |
 | `skip_morning_late_if_half_day_leave` | Check | `1` | Do not mark morning late if approved first-half leave exists |
+| `include_skip_auto_attendance_checkins` | Check | `1` | Include check-ins with Skip Auto Attendance (Biometric/ZKTeco sync) |
 | `warn_salary_slip_pending_late` | Check | `1` | Show warning indicator on Salary Slip if pending late logs exist |
 | `enable_hr_notification` | Check | `1` | Send in-app notification to HR Managers |
 | `habitual_threshold` | Int | `3` | Monthly late threshold for habitual classification |
