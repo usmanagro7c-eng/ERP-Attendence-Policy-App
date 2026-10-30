@@ -94,6 +94,17 @@ class AttendancePolicySettings(Document):
 					frappe.throw(_("Employee {0} is added more than once in Exempt Employees table.").format(row.employee))
 				seen.add(row.employee)
 
+	def on_update(self):
+		self.cleanup_exempt_employee_pending_logs()
+
+	def cleanup_exempt_employee_pending_logs(self):
+		exempt_emps = [r.employee.strip() for r in getattr(self, "exempt_employees", []) or [] if r.employee]
+		if exempt_emps:
+			frappe.db.delete("Late Arrival Log", {
+				"employee": ["in", exempt_emps],
+				"status": "Pending",
+			})
+
 
 @frappe.whitelist()
 def process_month_end(period_end, dry_run=False):
@@ -128,7 +139,10 @@ def process_month_end(period_end, dry_run=False):
 		by_emp.setdefault(l.employee, []).append(l)
 
 	results = []
+	exempt_emps = set(r.employee.strip() for r in getattr(s, "exempt_employees", []) or [] if r.employee)
 	for emp, ls in by_emp.items():
+		if emp in exempt_emps:
+			continue
 		emp_name = ls[0].employee_name or frappe.db.get_value("Employee", emp, "employee_name") or emp
 		calc = calculate_employee_deduction(emp, ls, period_end, s)
 

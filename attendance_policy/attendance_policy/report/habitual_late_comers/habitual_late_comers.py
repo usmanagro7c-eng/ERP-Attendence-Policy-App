@@ -8,18 +8,31 @@ def execute(filters=None):
 	min_count = cint(filters.min_count) or cint(
 		frappe.db.get_single_value("Attendance Policy Settings", "habitual_threshold")
 	) or 3
+	from attendance_policy.tasks import get_exempt_employees, settings
+	s = settings()
+	exempt_emps = list(get_exempt_employees(s))
+
+	conditions = ["attendance_date between %s and %s"]
+	params = [filters.from_date or get_first_day(today()), filters.to_date or today()]
+
+	if exempt_emps:
+		conditions.append("employee not in ({})".format(", ".join(["%s"] * len(exempt_emps))))
+		params.extend(exempt_emps)
+
+	params.append(min_count)
+
 	data = frappe.db.sql(
-		"""
+		f"""
 		select employee, employee_name, department,
 			sum(grade = 'Grade 1') as g1, sum(grade = 'Grade 2') as g2, sum(grade = 'Grade 3') as g3,
 			count(*) as total, sum(deduction_days) as days
 		from `tabLate Arrival Log`
-		where attendance_date between %s and %s
+		where {" and ".join(conditions)}
 		group by employee, employee_name, department
 		having count(*) >= %s
 		order by total desc
 		""",
-		(filters.from_date or get_first_day(today()), filters.to_date or today(), min_count),
+		params,
 		as_dict=True,
 	)
 	columns = [

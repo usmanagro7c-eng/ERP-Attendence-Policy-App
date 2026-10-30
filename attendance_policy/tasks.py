@@ -172,6 +172,13 @@ def process_daily_employee(emp, ls, date, s, rows, exempt_emps=None):
 
 	# Exemption check: record punch on daily report but do not grade or create Late Arrival Log
 	if emp in exempt_emps:
+		existing_pending = frappe.db.get_value(
+			"Late Arrival Log",
+			{"employee": emp, "attendance_date": date, "status": "Pending"},
+			"name",
+		)
+		if existing_pending:
+			frappe.delete_doc("Late Arrival Log", existing_pending, ignore_permissions=True, force=True)
 		rows.append((emp_details.employee_name or ls[0].employee_name, first, last, "Exempt"))
 		return
 
@@ -384,7 +391,10 @@ def month_end_job(date=None):
 	for l in logs:
 		by.setdefault(l.employee, []).append(l)
 
+	exempt_emps = get_exempt_employees(s)
 	for emp, ls in by.items():
+		if emp in exempt_emps:
+			continue
 		try:
 			process_employee(emp, ls, d, s)
 			frappe.db.commit()

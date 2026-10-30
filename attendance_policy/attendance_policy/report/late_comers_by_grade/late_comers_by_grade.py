@@ -19,6 +19,13 @@ def execute(filters=None):
 		conditions.append("department = %(department)s")
 		values["department"] = filters.department
 
+	from attendance_policy.tasks import get_exempt_employees, settings
+	s = settings()
+	exempt_emps = list(get_exempt_employees(s))
+	if exempt_emps:
+		conditions.append("employee not in %(exempt_emps)s")
+		values["exempt_emps"] = tuple(exempt_emps)
+
 	where_clause = " and ".join(conditions)
 
 	# Group by employee, counting by grade and collecting distinct dates
