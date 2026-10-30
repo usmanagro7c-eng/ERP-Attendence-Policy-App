@@ -103,6 +103,7 @@ The following items are explicitly **out of scope** for this release:
 | `salary_component` | Link (Salary Component) | `Late Arrival Deduction` | Salary component for cash deductions |
 | `salary_days_divisor` | Int | `30` | Per-day salary calculation divisor |
 | `create_journal_entry` | Check | `0` | Optionally generate direct journal entries |
+| `exempt_employees` | Table | - | List of employees exempted from late grading, deductions, and absence tracking |
 
 ---
 

@@ -5,9 +5,10 @@ All notable changes to the `attendance_policy` Frappe custom app will be documen
 ## [v0.0.3] - 2026-10-30
 
 ### Added
+- **Employee Policy Exemption Table:** Added Child DocType `Attendance Policy Exempt Employee` and `exempt_employees` table on `Attendance Policy Settings`. Exempted employees (e.g. Executives, Directors) are completely bypassed from late arrival grading, deduction entries, absence tracking, and leave penalties.
 - **Biometric Check-in Ingestion:** Added `include_skip_auto_attendance_checkins` in `Attendance Policy Settings` (default `1` / ON) to process `Employee Checkin` records created by biometric synchronization tools (such as `zkteco_sync`) that mark punches with `skip_auto_attendance=1`.
 - **Company-Scoped Daily Processing:** Scoped absent detection and checkin evaluation to `s.company` when configured, aligning processing with the target company (e.g. `Usman`).
-- **Integration Test:** Added `test_daily_job_with_skip_auto_attendance_biometric` verifying biometric check-in ingestion and toggle behavior.
+- **Integration Test:** Added `test_daily_job_with_skip_auto_attendance_biometric` and `test_exempt_employee_bypass` verifying biometric check-in ingestion and exemption table behavior.
 
 ---
 

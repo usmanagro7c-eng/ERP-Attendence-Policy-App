@@ -21,6 +21,7 @@ class AttendancePolicySettings(Document):
 		self.validate_salary_component()
 		self.validate_journal_entry_settings()
 		self.validate_recipients()
+		self.validate_exempt_employees()
 
 	def validate_fractions(self):
 		for fld in ["grade1_deduction", "grade2_deduction", "grade3_deduction"]:
@@ -84,6 +85,14 @@ class AttendancePolicySettings(Document):
 			emails = [e.strip() for e in self.report_recipients.replace("\n", ",").split(",") if e.strip()]
 			for email in emails:
 				validate_email_address(email, throw=True)
+
+	def validate_exempt_employees(self):
+		seen = set()
+		for row in getattr(self, "exempt_employees", []) or []:
+			if row.employee:
+				if row.employee in seen:
+					frappe.throw(_("Employee {0} is added more than once in Exempt Employees table.").format(row.employee))
+				seen.add(row.employee)
 
 
 @frappe.whitelist()

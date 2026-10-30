@@ -18,6 +18,17 @@ def settings():
 	return frappe.get_single("Attendance Policy Settings")
 
 
+def get_exempt_employees(s=None):
+	"""Returns set of employee docnames exempted from attendance policy rules."""
+	if not s:
+		s = settings()
+	exempt = set()
+	for row in getattr(s, "exempt_employees", []) or []:
+		if row.employee:
+			exempt.add(row.employee.strip())
+	return exempt
+
+
 def is_holiday(employee, date):
 	from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 
@@ -84,10 +95,12 @@ def daily_job(date=None):
 	for l in logs:
 		by.setdefault(l.employee, []).append(l)
 
+	exempt_emps = get_exempt_employees(s)
+
 	rows = []
 	for emp, ls in by.items():
 		try:
-			process_daily_employee(emp, ls, date, s, rows)
+			process_daily_employee(emp, ls, date, s, rows, exempt_emps=exempt_emps)
 			frappe.db.commit()
 		except Exception:
 			frappe.db.rollback()
@@ -104,6 +117,9 @@ def daily_job(date=None):
 			fields=["name", "employee_name", "date_of_joining", "relieving_date"],
 		)
 		for e in active_emps:
+			# Skip exempt employees from absent list
+			if e.name in exempt_emps:
+				continue
 			# Check joining and relieving dates
 			if e.date_of_joining and getdate(e.date_of_joining) > date:
 				continue
@@ -123,7 +139,7 @@ def daily_job(date=None):
 		send_hr_notification(s, date, rows, absent, hab)
 
 
-def process_daily_employee(emp, ls, date, s, rows):
+def process_daily_employee(emp, ls, date, s, rows, exempt_emps=None):
 	emp_details = frappe.db.get_value(
 		"Employee", emp, ["status", "company", "date_of_joining", "relieving_date", "employee_name", "department"], as_dict=True
 	)
@@ -150,6 +166,15 @@ def process_daily_employee(emp, ls, date, s, rows):
 
 	first = first_log.time
 	last = last_log.time if last_log else None
+
+	if exempt_emps is None:
+		exempt_emps = get_exempt_employees(s)
+
+	# Exemption check: record punch on daily report but do not grade or create Late Arrival Log
+	if emp in exempt_emps:
+		rows.append((emp_details.employee_name or ls[0].employee_name, first, last, "Exempt"))
+		return
+
 	grade = None
 	days = 0
 

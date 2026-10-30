@@ -386,6 +386,44 @@ class TestAttendancePolicy(IntegrationTestCase):
 		s.include_skip_auto_attendance_checkins = 1
 		s.save(ignore_permissions=True)
 
+	def test_exempt_employee_bypass(self):
+		emp = self.create_employee("ExemptUser")
+		test_date = "2026-11-04"
+
+		frappe.db.sql("DELETE FROM `tabLate Arrival Log` WHERE employee=%s", emp)
+		frappe.db.sql("DELETE FROM `tabEmployee Checkin` WHERE employee=%s", emp)
+		frappe.db.commit()
+
+		# Add to exempt employees list
+		s = frappe.get_single("Attendance Policy Settings")
+		s.append("exempt_employees", {
+			"employee": emp,
+			"reason": "Executive Director",
+		})
+		s.save(ignore_permissions=True)
+
+		# Employee punches in late at 10:15 (normally Grade 2, 0.3333 days)
+		frappe.get_doc({
+			"doctype": "Employee Checkin",
+			"employee": emp,
+			"time": f"{test_date} 10:15:00",
+			"log_type": "IN",
+		}).insert(ignore_permissions=True)
+		frappe.db.commit()
+
+		# Run daily job
+		daily_job(date=test_date)
+
+		# Assert NO Late Arrival Log was created
+		self.assertFalse(
+			frappe.db.exists("Late Arrival Log", {"employee": emp, "attendance_date": test_date}),
+			"Exempt employee must NOT have a Late Arrival Log generated."
+		)
+
+		# Cleanup exempt row
+		s.exempt_employees = [r for r in s.exempt_employees if r.employee != emp]
+		s.save(ignore_permissions=True)
+
 	# ==========================================
 	# 4. HR NOTIFICATION (FIX 4)
 	# ==========================================

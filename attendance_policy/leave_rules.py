@@ -8,11 +8,13 @@ from frappe.utils import (
 	today,
 )
 
-from attendance_policy.tasks import is_holiday
+from attendance_policy.tasks import get_exempt_employees, is_holiday
 
 
 def validate_leave_application(doc, method=None):
 	s = frappe.get_single("Attendance Policy Settings")
+	if doc.employee in get_exempt_employees(s):
+		return
 	if s.casual_leave_type and doc.leave_type == s.casual_leave_type:
 		_casual(doc, s)
 	elif s.annual_leave_type and doc.leave_type == s.annual_leave_type:
@@ -77,6 +79,8 @@ def _casual(doc, s):
 def on_leave_application_submit(doc, method=None):
 	"""On submission, if Reason is empty and adjacent holidays exist, create extra Leave Ledger Entry."""
 	s = frappe.get_single("Attendance Policy Settings")
+	if doc.employee in get_exempt_employees(s):
+		return
 	if not (s.casual_leave_type and doc.leave_type == s.casual_leave_type and s.count_adjacent_holidays):
 		return
 	if (doc.description or "").strip():
@@ -139,6 +143,8 @@ def _annual(doc, s):
 
 def validate_leave_encashment(doc, method=None):
 	s = frappe.get_single("Attendance Policy Settings")
+	if doc.employee in get_exempt_employees(s):
+		return
 	if not (s.casual_leave_type and doc.leave_type == s.casual_leave_type):
 		return
 	max_days = flt(s.max_encashable_days if s.max_encashable_days is not None else 10)
@@ -168,6 +174,8 @@ def validate_leave_encashment(doc, method=None):
 
 def validate_salary_slip(doc, method=None):
 	s = frappe.get_single("Attendance Policy Settings")
+	if doc.employee in get_exempt_employees(s):
+		return
 	if not s.warn_salary_slip_pending_late:
 		return
 	if not (doc.employee and doc.start_date and doc.end_date):
