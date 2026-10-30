@@ -18,7 +18,7 @@
   {
    "fieldname": "s1",
    "fieldtype": "Section Break",
-   "label": "Timings (memo section 3)"
+   "label": "Shift & Timing Thresholds"
   },
   {
    "fieldname": "arrival_cutoff",
@@ -60,7 +60,7 @@
   {
    "fieldname": "s2",
    "fieldtype": "Section Break",
-   "label": "Deduction (in days)"
+   "label": "Late Penalty Rates (Fraction of Day)"
   },
   {
    "fieldname": "grade1_deduction",
@@ -92,7 +92,7 @@
   {
    "fieldname": "s3",
    "fieldtype": "Section Break",
-   "label": "Reports & Notifications"
+   "label": "Reports & Automated Alerts"
   },
   {
    "fieldname": "habitual_threshold",
@@ -115,7 +115,7 @@
   {
    "fieldname": "s4",
    "fieldtype": "Section Break",
-   "label": "Leave rules (memo section 4)"
+   "label": "Leave Balance & Adjacent Holidays"
   },
   {
    "fieldname": "casual_leave_type",
@@ -156,7 +156,7 @@
   {
    "fieldname": "s5",
    "fieldtype": "Section Break",
-   "label": "Month-end & Payroll"
+   "label": "Month-End & Payroll Deductions"
   },
   {
    "fieldname": "deduct_from_leave_first",

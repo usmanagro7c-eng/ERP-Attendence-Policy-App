@@ -8,6 +8,9 @@
  "editable_grid": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "title_field": "employee_name",
+ "search_fields": "employee,employee_name,grade,attendance_date",
+ "show_title_field_in_link": 1,
  "fields": [
   {
    "fieldname": "employee",
