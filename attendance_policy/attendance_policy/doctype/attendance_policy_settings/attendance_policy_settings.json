@@ -57,6 +57,13 @@
    "label": "Include Check-ins with Skip Auto Attendance (Biometric Devices)",
    "default": "1",
    "description": "Allow processing check-ins created by biometric sync apps (like zkteco_sync) that have skip_auto_attendance enabled"
+   },
+   {
+    "fieldname": "enable_realtime_grading",
+    "fieldtype": "Check",
+    "label": "Enable Real-Time Late Grading on Check-in",
+    "default": "1",
+    "description": "Instantly grade late arrivals and create Late Arrival Logs when Employee Checkin is created"
   },
   {
    "collapsible": 1,
@@ -230,6 +237,7 @@
   "second_half_cutoff",
   "skip_morning_late_if_half_day_leave",
   "include_skip_auto_attendance_checkins",
+   "enable_realtime_grading",
   "s2",
   "grade1_deduction",
   "grade2_deduction",

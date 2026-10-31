@@ -9,6 +9,9 @@ required_apps = ["erpnext", "hrms"]
 after_install = "attendance_policy.install.after_install"
 
 doc_events = {
+	"Employee Checkin": {
+		"after_insert": "attendance_policy.tasks.on_employee_checkin_insert",
+	},
 	"Leave Application": {
 		"validate": "attendance_policy.leave_rules.validate_leave_application",
 		"on_submit": "attendance_policy.leave_rules.on_leave_application_submit",

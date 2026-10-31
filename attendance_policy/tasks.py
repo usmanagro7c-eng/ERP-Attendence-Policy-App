@@ -70,6 +70,26 @@ def get_grade(arrival, s):
 	return "Grade 3", flt(s.grade3_deduction)
 
 
+@frappe.whitelist()
+def sync_biometric_and_grade_today():
+	"""Manually triggers biometric sync from device and grades today's attendance."""
+	frappe.only_for(["HR Manager", "System Manager"])
+	summary = {}
+	try:
+		from zkteco_sync.zkteco_sync.sync_engine import run_sync
+		summary = run_sync(source="manual_attendance_policy")
+	except Exception as e:
+		frappe.logger("attendance_policy").warning(f"Could not run zkteco_sync: {e}")
+
+	daily_job(date=today())
+
+	created_ckins = summary.get("created", 0) if isinstance(summary, dict) else 0
+	late_count = frappe.db.count("Late Arrival Log", {"attendance_date": today()})
+	return _("Biometric sync finished ({0} new checkins). Processed today's attendance ({1} late arrivals total).").format(
+		created_ckins, late_count
+	)
+
+
 # ---------------- Daily Job ----------------
 def daily_job(date=None):
 	s = settings()
@@ -231,6 +251,64 @@ def process_daily_employee(emp, ls, date, s, rows, exempt_emps=None):
 					existing_log.save(ignore_permissions=True)
 
 	rows.append((emp_details.employee_name or ls[0].employee_name, first, last, grade))
+
+
+def on_employee_checkin_insert(doc, method=None):
+	"""Real-time grading triggered whenever an Employee Checkin is inserted."""
+	try:
+		s = settings()
+		if not getattr(s, "enable_realtime_grading", 1):
+			return
+		if not doc.employee or not doc.time:
+			return
+
+		# Check if skip_auto_attendance checkins should be processed
+		if getattr(doc, "skip_auto_attendance", 0) and not getattr(s, "include_skip_auto_attendance_checkins", 1):
+			return
+
+		date = getdate(doc.time)
+		process_single_employee_realtime(doc.employee, date, s)
+	except Exception:
+		frappe.log_error(title=f"Real-time late grading failed for {doc.get('employee')}")
+
+
+def process_single_employee_realtime(emp, date, s=None):
+	"""Evaluates a single employee's checkins for a given date in real-time."""
+	if not s:
+		s = settings()
+
+	exempt_emps = get_exempt_employees(s)
+	if emp in exempt_emps:
+		existing_pending = frappe.db.get_value(
+			"Late Arrival Log",
+			{"employee": emp, "attendance_date": date, "status": "Pending"},
+			"name",
+		)
+		if existing_pending:
+			frappe.delete_doc("Late Arrival Log", existing_pending, ignore_permissions=True, force=True)
+		return
+
+	start_dt = datetime.combine(date, dtime.min)
+	end_dt = datetime.combine(date, dtime.max)
+
+	checkin_filters = {
+		"employee": emp,
+		"time": ["between", [start_dt, end_dt]],
+	}
+	if not getattr(s, "include_skip_auto_attendance_checkins", 1):
+		checkin_filters["skip_auto_attendance"] = 0
+
+	ls = frappe.get_all(
+		"Employee Checkin",
+		filters=checkin_filters,
+		fields=["name", "employee", "employee_name", "time", "log_type"],
+		order_by="time asc",
+	)
+	if not ls:
+		return
+
+	rows = []
+	process_daily_employee(emp, ls, date, s, rows, exempt_emps=exempt_emps)
 
 
 def is_holiday_company_wide(date):

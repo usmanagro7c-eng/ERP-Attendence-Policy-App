@@ -6,6 +6,24 @@ frappe.ui.form.on("Attendance Policy Settings", {
 		render_settings_dashboard(frm);
 
 		if (frappe.user.has_role("HR Manager") || frappe.user.has_role("System Manager")) {
+			frm.add_custom_button(__("Sync Machine & Grade Today"), function () {
+				frappe.call({
+					method: "attendance_policy.tasks.sync_biometric_and_grade_today",
+					freeze: true,
+					freeze_message: __("Syncing punches from biometric device and grading today..."),
+					callback: function (r) {
+						if (r.message) {
+							frappe.msgprint({
+								title: __("Sync & Grading Completed"),
+								message: r.message,
+								indicator: "green",
+							});
+						}
+						frm.reload_doc();
+					},
+				});
+			}, __("Actions"));
+
 			frm.add_custom_button(__("Month-End Dry Run"), function () {
 				show_month_end_dialog(frm, true);
 			}, __("Actions"));
